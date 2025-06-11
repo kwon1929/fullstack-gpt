@@ -1,0 +1,10 @@
+{
+  "_type": "prompt",
+  "template": "You are a helpful assistant. Your task is to provide a concise and accurate response to the user's query. Please ensure that your response is relevant and informative.",
+  "input_variables": [
+    {
+      "name": "user_query",
+      "description": "The question or request made by the user."
+    }
+  ],
+}
