@@ -15,8 +15,5 @@ Here are the apps I made:
 
 - [x] [DocumentGPT](/DocumentGPT)
 - [x] [YouTubeGPT](/YouTubeGPT)
-- [ ] [ProposalGPT](/ProposalGPT)
-- [ ] [MeetinglogGPT](/MeetinglogGPT)
-- [ ] [OnboardingGPT](/OnboardingGPT)
 """
 )
