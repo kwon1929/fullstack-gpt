@@ -8,6 +8,10 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_core.callbacks import BaseCallbackHandler
 import streamlit as st
+import os
+
+# Set OpenAI API key from Streamlit secrets
+os.environ["OPENAI_API_KEY"] = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))
 
 st.set_page_config(
     page_title="DocumentGPT",

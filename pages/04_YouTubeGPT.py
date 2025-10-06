@@ -3,7 +3,11 @@ from langchain_openai import ChatOpenAI
 from langchain_core.callbacks import BaseCallbackHandler
 from youtube_transcript_api import YouTubeTranscriptApi
 import streamlit as st
+import os
 import re
+
+# Set OpenAI API key from Streamlit secrets
+os.environ["OPENAI_API_KEY"] = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))
 
 st.set_page_config(
     page_title="YouTubeGPT",
