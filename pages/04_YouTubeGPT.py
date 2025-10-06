@@ -53,12 +53,14 @@ def extract_video_id(url):
 def get_transcript(video_id):
     """YouTube 자막 가져오기 (yt-dlp 사용)"""
     try:
+        import json
+        import urllib.request
+
         ydl_opts = {
             'skip_download': True,
             'writesubtitles': True,
             'writeautomaticsub': True,
             'subtitleslangs': ['en', 'ko'],
-            'subtitlesformat': 'json3',
             'quiet': True,
             'no_warnings': True,
         }
@@ -72,36 +74,37 @@ def get_transcript(video_id):
             for lang in ['en', 'ko']:
                 # 수동 자막 먼저 시도
                 if 'subtitles' in info and lang in info['subtitles']:
-                    subtitles = info['subtitles'][lang]
-                    if subtitles and len(subtitles) > 0:
-                        # JSON3 형식의 자막 파싱
-                        sub_data = subtitles[0]
-                        if 'data' in sub_data:
-                            events = sub_data['data'].get('events', [])
-                            text_parts = []
-                            for event in events:
-                                if 'segs' in event:
-                                    for seg in event['segs']:
-                                        if 'utf8' in seg:
-                                            text_parts.append(seg['utf8'])
-                            if text_parts:
-                                return " ".join(text_parts)
+                    subs = info['subtitles'][lang]
+                    # json3 형식 찾기
+                    for sub in subs:
+                        if sub.get('ext') == 'json3':
+                            # URL에서 자막 다운로드
+                            with urllib.request.urlopen(sub['url']) as response:
+                                data = json.loads(response.read().decode('utf-8'))
+                                text_parts = []
+                                for event in data.get('events', []):
+                                    if 'segs' in event:
+                                        for seg in event['segs']:
+                                            if 'utf8' in seg:
+                                                text_parts.append(seg['utf8'])
+                                if text_parts:
+                                    return " ".join(text_parts)
 
                 # 자동 생성 자막 시도
                 if 'automatic_captions' in info and lang in info['automatic_captions']:
-                    subtitles = info['automatic_captions'][lang]
-                    if subtitles and len(subtitles) > 0:
-                        sub_data = subtitles[0]
-                        if 'data' in sub_data:
-                            events = sub_data['data'].get('events', [])
-                            text_parts = []
-                            for event in events:
-                                if 'segs' in event:
-                                    for seg in event['segs']:
-                                        if 'utf8' in seg:
-                                            text_parts.append(seg['utf8'])
-                            if text_parts:
-                                return " ".join(text_parts)
+                    subs = info['automatic_captions'][lang]
+                    for sub in subs:
+                        if sub.get('ext') == 'json3':
+                            with urllib.request.urlopen(sub['url']) as response:
+                                data = json.loads(response.read().decode('utf-8'))
+                                text_parts = []
+                                for event in data.get('events', []):
+                                    if 'segs' in event:
+                                        for seg in event['segs']:
+                                            if 'utf8' in seg:
+                                                text_parts.append(seg['utf8'])
+                                if text_parts:
+                                    return " ".join(text_parts)
 
             return None
     except Exception as e:
