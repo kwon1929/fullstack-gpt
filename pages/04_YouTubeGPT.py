@@ -1,10 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.callbacks import BaseCallbackHandler
-from youtube_transcript_api import YouTubeTranscriptApi
 import streamlit as st
 import os
 import re
+import yt_dlp
 
 # Set OpenAI API key from Streamlit secrets
 os.environ["OPENAI_API_KEY"] = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY", ""))
@@ -51,38 +51,61 @@ def extract_video_id(url):
 
 @st.cache_data(show_spinner="Loading transcript...")
 def get_transcript(video_id):
-    """YouTube 자막 가져오기 (영어 우선)"""
+    """YouTube 자막 가져오기 (yt-dlp 사용)"""
     try:
-        api = YouTubeTranscriptApi()
-        transcripts = api.list(video_id)
+        ydl_opts = {
+            'skip_download': True,
+            'writesubtitles': True,
+            'writeautomaticsub': True,
+            'subtitleslangs': ['en', 'ko'],
+            'subtitlesformat': 'json3',
+            'quiet': True,
+            'no_warnings': True,
+        }
 
-        # 영어 자막 찾기 (우선)
-        try:
-            transcript = transcripts.find_transcript(['en'])
-            data = transcript.fetch()
-            return " ".join([snippet.text for snippet in data])
-        except:
-            pass
+        url = f"https://www.youtube.com/watch?v={video_id}"
 
-        # 한국어 자막 찾기
-        try:
-            transcript = transcripts.find_transcript(['ko'])
-            data = transcript.fetch()
-            return " ".join([snippet.text for snippet in data])
-        except:
-            pass
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
 
-        # 첫 번째 사용 가능한 자막 가져오기
-        for t in transcripts:
-            try:
-                data = t.fetch()
-                return " ".join([snippet.text for snippet in data])
-            except:
-                continue
+            # 자막 우선순위: 영어 > 한국어
+            for lang in ['en', 'ko']:
+                # 수동 자막 먼저 시도
+                if 'subtitles' in info and lang in info['subtitles']:
+                    subtitles = info['subtitles'][lang]
+                    if subtitles and len(subtitles) > 0:
+                        # JSON3 형식의 자막 파싱
+                        sub_data = subtitles[0]
+                        if 'data' in sub_data:
+                            events = sub_data['data'].get('events', [])
+                            text_parts = []
+                            for event in events:
+                                if 'segs' in event:
+                                    for seg in event['segs']:
+                                        if 'utf8' in seg:
+                                            text_parts.append(seg['utf8'])
+                            if text_parts:
+                                return " ".join(text_parts)
 
-        return None
+                # 자동 생성 자막 시도
+                if 'automatic_captions' in info and lang in info['automatic_captions']:
+                    subtitles = info['automatic_captions'][lang]
+                    if subtitles and len(subtitles) > 0:
+                        sub_data = subtitles[0]
+                        if 'data' in sub_data:
+                            events = sub_data['data'].get('events', [])
+                            text_parts = []
+                            for event in events:
+                                if 'segs' in event:
+                                    for seg in event['segs']:
+                                        if 'utf8' in seg:
+                                            text_parts.append(seg['utf8'])
+                            if text_parts:
+                                return " ".join(text_parts)
+
+            return None
     except Exception as e:
-        st.error(f"Error details: {str(e)}")
+        st.error(f"Error loading transcript: {str(e)}")
         return None
 
 

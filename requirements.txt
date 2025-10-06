@@ -3,7 +3,7 @@ langchain
 langchain-community
 langchain-openai
 openai
-youtube-transcript-api
+yt-dlp
 faiss-cpu
 unstructured
 python-dotenv
