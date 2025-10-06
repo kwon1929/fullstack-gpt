@@ -8,13 +8,15 @@ st.set_page_config(
 st.markdown(
     """
 # Hello!
-            
-this is Toss Sales Copliot!
-            
+
+this is Toss Sales Copilot!
+
 Here are the apps I made:
-            
+
+- [x] [DocumentGPT](/DocumentGPT)
+- [x] [YouTubeGPT](/YouTubeGPT)
 - [ ] [ProposalGPT](/ProposalGPT)
 - [ ] [MeetinglogGPT](/MeetinglogGPT)
-- [ ] [OnboradingGPT](/OnboradingGPT)
+- [ ] [OnboardingGPT](/OnboardingGPT)
 """
 )
