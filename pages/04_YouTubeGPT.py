@@ -47,22 +47,22 @@ def extract_video_id(url):
 
 @st.cache_data(show_spinner="Loading transcript...")
 def get_transcript(video_id):
-    """YouTube 자막 가져오기"""
+    """YouTube 자막 가져오기 (영어 우선)"""
     try:
         api = YouTubeTranscriptApi()
         transcripts = api.list(video_id)
 
-        # 한국어 자막 찾기
+        # 영어 자막 찾기 (우선)
         try:
-            transcript = transcripts.find_transcript(['ko'])
+            transcript = transcripts.find_transcript(['en'])
             data = transcript.fetch()
             return " ".join([snippet.text for snippet in data])
         except:
             pass
 
-        # 영어 자막 찾기
+        # 한국어 자막 찾기
         try:
-            transcript = transcripts.find_transcript(['en'])
+            transcript = transcripts.find_transcript(['ko'])
             data = transcript.fetch()
             return " ".join([snippet.text for snippet in data])
         except:
@@ -125,6 +125,22 @@ if youtube_url:
             # 비디오 미리보기
             st.video(youtube_url)
 
+            # 스크립트 섹션 추가
+            with st.expander("📄 View Full Transcript"):
+                st.markdown("### Full English Transcript")
+                st.text_area(
+                    "Transcript for Shadowing Practice",
+                    transcript,
+                    height=400,
+                    label_visibility="collapsed"
+                )
+                st.download_button(
+                    label="⬇️ Download Transcript",
+                    data=transcript,
+                    file_name=f"transcript_{video_id}.txt",
+                    mime="text/plain"
+                )
+
             # 채팅 인터페이스
             if "messages" not in st.session_state:
                 st.session_state["messages"] = []
@@ -139,13 +155,19 @@ if youtube_url:
                 prompt = ChatPromptTemplate.from_messages([
                     ("system",
                      """
-                     You are a helpful assistant for English learning and video transcript analysis.
-                     The user wants to study English through shadowing and understanding video content.
+                     You are an English learning assistant. The user is using this tool to study English through shadowing practice.
 
-                     When asked for a script or transcript, provide it in full or in organized sections.
-                     You can also summarize, explain difficult parts, or answer specific questions.
+                     IMPORTANT: When the user asks for the script, transcript, or full text, you MUST provide it completely.
+                     This is for educational purposes (language learning and shadowing practice).
 
-                     Always be helpful and provide the full transcript when requested.
+                     You can:
+                     - Provide the full transcript when requested
+                     - Break it into sections for easier reading
+                     - Summarize the content
+                     - Explain difficult vocabulary or expressions
+                     - Answer questions about the video content
+
+                     The transcript is provided below. Use it to help the user study English.
 
                      Transcript:
                      {transcript}
