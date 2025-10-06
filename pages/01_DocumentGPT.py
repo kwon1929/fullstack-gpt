@@ -1,12 +1,12 @@
-from langchain.prompts import ChatPromptTemplate
-from langchain.document_loaders import UnstructuredFileLoader
-from langchain.embeddings import CacheBackedEmbeddings, OpenAIEmbeddings
-from langchain.schema.runnable import RunnableLambda, RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders import UnstructuredFileLoader
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain.embeddings import CacheBackedEmbeddings
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain.storage import LocalFileStore
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores.faiss import FAISS
-from langchain_openai import ChatOpenAI
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain_community.vectorstores import FAISS
+from langchain_core.callbacks import BaseCallbackHandler
 import streamlit as st
 
 st.set_page_config(
